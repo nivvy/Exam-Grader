@@ -1,0 +1,219 @@
+while True:
+    #part1
+    try:
+        # ask user which class file to open
+        filename = input("Enter a class file to grade (i.e. class1 for class1.txt): ")
+
+        
+        # try to find filename
+        findfile = open(filename + ".txt", "r")
+        contents = findfile.read()       
+
+    except:
+        # if file name is not found
+        print ("File cannot be found.")
+        print()
+
+    else:
+        # if file name is found
+        print ("Successfully opened", filename + ".txt")
+        
+        #part2
+            
+        # store answer key 
+        #answerkey = "B,A,D,D,C,B,D,A,C,C,D,B,A,B,A,C,B,D,A,C,A,A,B,D,D"
+        answerkey = ["B","A","D","D","C","B","D","A","C","C","D","B","A","B","A","C","B","D","A","C","A","A","B","D","D"]
+
+        print ()
+        print ("Grade Summary:")
+
+        # split first on line break to isolate each student's data
+        splitstudents = contents.split("\n")
+
+        # set up counter to count invalid lines
+        invalid = 0
+        #calculate total # of invalid lines of data found in file
+        for student in splitstudents:
+            commas = student.count(",")
+            if commas != 25:
+                invalid += 1
+
+        # set up counter to count # of students
+        numstudents = 0
+        #calculate total # of students
+        for student in splitstudents:
+            numstudents += 1
+        numstudents = numstudents - invalid
+
+        # create empty list to store student scores
+        scores = []
+        # create empty list to store student n numbers
+        studentnum = []
+
+        #calculate grade for each student
+        for student in splitstudents:
+            if commas != 25:
+                continue
+            else:
+                # put student's answers into list
+                splitanswers = student.split(",")
+                if len(splitanswers) != 26:
+                    continue
+                # store n numbers in a list
+                nnumber = splitanswers [0]
+                studentnum.append(nnumber)
+                # remove N #
+                del splitanswers [0]
+                if len(splitanswers) != 25:
+                    continue
+                # store counter to count student's correct answers 
+                correctanswers = 0
+                for i in range(0, len(splitanswers)):
+                    if splitanswers[i].isalpha() == True:
+                        if splitanswers[i] == answerkey[i]:
+                            correctanswers += 4
+                        else:
+                            correctanswers -= 1
+                scores.append(correctanswers)
+
+        grades = []
+        grades += scores
+        
+        # find average score
+        meanscores = (sum(scores)/len(scores))
+
+        print ("Total students:", numstudents)
+        print ("Unusable lines in the file:", invalid)
+        #find highest score among grades
+        print("Highest score:", max(scores))
+        #find lowest score among grades
+        print("Lowest score:", min(scores))
+        print("Mean score:", format(meanscores, ".2f"))
+
+        #part3
+        
+        # sort scores
+        scores.sort()
+
+        # find median
+        # find middle values of scores
+        middle = len(scores)//2
+        # if # of students is even
+        if len(scores)% 2 == 0:
+            # median = average 2 middle values
+            median = ((scores[middle-1] + scores[middle])/2)
+                # if # of students is odd
+        else:
+            # median = middle index
+            median = scores[middle]
+
+        # find mode
+        # set counter to find mode
+        numofoccurances = []
+        correspondingscores = []
+        for i in scores:
+            occurances = scores.count(i)
+            if occurances == 1:
+                continue
+            else:
+                if i in correspondingscores:
+                    continue
+                numofoccurances.append(occurances)
+                correspondingscores.append(i)
+        # find which occurance is the highest out of all the values that occur more than once
+        maxoccurances = max(numofoccurances)
+        numofmaxoccurances = numofoccurances.count(maxoccurances)
+        if numofmaxoccurances == 1: 
+            # save the index of highest occurance
+            modeindex = numofoccurances.index(maxoccurances)
+            # use index to save the corresponding score as the mode
+            mode = correspondingscores[modeindex]
+        # take into account more than 1 mode
+        else:
+            modes = []
+            for i in correspondingscores:
+                index1 = correspondingscores.index(i)
+                if numofoccurances[index1] == maxoccurances:
+                    modes.append(i)
+            
+                
+        for student in splitstudents:
+            commas = student.count(",")
+            if commas != 25:
+                invalid += 1
+
+        # find range
+        rangescores = max(scores) - min(scores)
+
+        print("Median score:", median)
+        # print 1 mode if only 1 mode
+        if numofmaxoccurances == 1:
+            print ("Mode:", mode)
+        # print more than 1 mode if more than 1 mode
+        else:
+            print ("Mode:", str(modes).replace('[',"").replace(']',""))
+        print("Range:", rangescores)
+
+    #part5: extra credit
+        
+        # set list to add curved scores to
+        curvedscores = []
+
+        while True:
+            curve = input("Would you like to curve the exam? 'y' or 'n': ")
+            # reprompt user if they give invalid answer
+            while curve != "y" and curve != "n":
+                print ("Invalid answer, try again.")
+                curve = input("Would you like to curve the exam? 'y' or 'n': ")
+            # end program if user doesnt want to curve
+            if curve == "n":
+                break
+            if curve == "y":
+                while True:
+                    mean2 = float(input("Enter a desired mean (i.e. 75.0 to raise the mean score to 75.0): "))
+                    # make sure user is inputting positive curve value
+                    if mean2 <= 0 or (mean2 - meanscores) <= 0:
+                        print ("Invalid curve, try again.")
+                        print ()
+                    # break loop if mean is valid
+                    else:
+                        break
+                difference = mean2 - meanscores
+                for i in range(0, len(grades)):
+                    # add difference to old scores
+                    curved = grades[i] + difference
+                    # add curved score to list of curved scores
+                    curvedscores.append(curved)
+            # create new filename for curved grades
+            curvedfile = filename + "_grades.txt"
+            # open file to write in curved grades
+            writeresults = open(curvedfile, "w")
+            # go through student n #s to write in n #s, old grades, curved grades
+            for i in range(0,len(studentnum)):
+                studentresult = studentnum[i] + "," + format((grades[i]), ".2f") + "," + format((curvedscores[i]), ".2f")
+                writeresults.write(studentresult)
+                writeresults.write("\n")
+           # print confirmation
+            print ("Done! Check your grade file!") #print confirmation message
+            print ()
+            writeresults.close()
+            findfile.close()
+            # break loop
+            break
+        # if user says "n"
+        else:
+            # create and open new file to store results
+            resultsfile = filename + "_grades.txt"
+            writeresults = open(resultsfile, "w")
+            for i in range(0,len(studentnum)):
+                # write in n number and score for each student
+                studentresult = studentnum[i] + "," + format((grades[i]), ".2f")
+                writeresults.write(studentresult)
+                writeresults.write("\n")
+            writeresults.close()
+            findfile.close()
+            # break loop
+            break
+
+
+
